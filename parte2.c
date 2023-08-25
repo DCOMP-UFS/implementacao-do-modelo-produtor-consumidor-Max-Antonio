@@ -32,7 +32,7 @@ void printClock(Clock *clock, int processo) {
    printf("Thread: %d, Clock consumido: (%d, %d, %d)\n", processo, clock->p[0], clock->p[1], clock->p[2]);
 }
 
-void produzirClock() {
+void produzirClock(int threadId) {
     //cria o clock
     Clock *clock = (Clock*)malloc(sizeof(Clock));
     clock->p[0] = rand() % 10000;
@@ -47,6 +47,7 @@ void produzirClock() {
     
     filaClock[clockCont] = *clock;
     clockCont++;
+    printf("Thread: %d, Clock produzido: (%d, %d, %d)\n", threadId, clock->p[0], clock->p[1], clock->p[2]);
     
     pthread_mutex_unlock(&mutex_prod); //desbloqueia acesso a região critica
     pthread_cond_signal(&condEmpty); //envia sinal que a fila não está vazia
@@ -74,22 +75,23 @@ void consumirClock(int threadId) {
 }
 
 void cenarioTesteCheia() {
-    temp_espera_cons = 2;
+    temp_espera_cons = 3;
     temp_espera_prod = 1;
 }
 
 
 void cenarioTesteVazia() {
     temp_espera_cons = 1;
-    temp_espera_prod = 2;
+    temp_espera_prod = 3;
 }
 
 
-void *threadProdutora() {
+void *threadProdutora(void* arg) {
+    long id = (long) arg; 
     while (1){ 
-        produzirClock();
-        sleep(temp_espera_prod);
-   }
+        produzirClock(id);
+        sleep(temp_espera_prod* (rand() %4));
+   } 
    return NULL;
 } 
 
@@ -97,7 +99,7 @@ void *threadConsumidora(void* arg) {
     long id = (long) arg; 
     while(1) {
         consumirClock(id);  
-        sleep(temp_espera_cons);
+        sleep(temp_espera_cons*(rand() %4));
     }
     return NULL;
 }
