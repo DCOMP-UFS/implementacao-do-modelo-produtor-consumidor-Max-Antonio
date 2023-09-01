@@ -46,7 +46,7 @@ void produzirClock(int threadId) {
         pthread_cond_wait(&condFull, &mutex_prod);
     }
     
-    filaClock[clockCont] = *clock;
+    filaClock[clockCont] = *clock; //insere no final da fila
     clockCont++;
     printf("Thread: %d, Clock produzido: (%d, %d, %d)\n", threadId, clock->p[0], clock->p[1], clock->p[2]);
     
@@ -60,13 +60,13 @@ void consumirClock(int threadId) {
     pthread_mutex_lock(&mutex_cons); //bloqueia acesso a região critica
     
     while (clockCont == 0) { //enquanto a fila estiver vazia espera até que um clock seja produzido
-        printf("Thread %d NAO pode consumir poia fila esta vazia\n", threadId);
+        printf("Thread %d NAO pode consumir pois a fila esta vazia\n", threadId);
         pthread_cond_wait(&condEmpty, &mutex_cons);
     }
     
     Clock clock = filaClock[0];
     printClock(&clock, threadId);
-    for (int i = 0; i < clockCont-1; i++) {
+    for (int i = 0; i < clockCont-1; i++) { //retira o clock do começo da fila
         filaClock[i] = filaClock[i+1];
     }
     clockCont--;
