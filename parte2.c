@@ -19,8 +19,7 @@ Clock filaClock[SIZE];
 int clockCont = 0;
 
 
-pthread_mutex_t mutex_cons; //mutex para as threads consumidoras
-pthread_mutex_t mutex_prod; //mutex para as threads produtoras
+pthread_mutex_t mutex; //mutex para as threads consumidoras e produtoras
 pthread_cond_t condFull;
 pthread_cond_t condEmpty;
 
@@ -39,29 +38,29 @@ void produzirClock(int threadId) {
     clock->p[1] = rand() % 10000;
     clock->p[2] = rand() % 10000;
     
-    pthread_mutex_lock(&mutex_prod); //bloqueia acesso a região critica
+    pthread_mutex_lock(&mutex); //bloqueia acesso a região critica
     //regiao critica
     while (clockCont == SIZE) { //se tiver cheio espera até receber sinal que um clock foi consumido
         printf("Thread %d NAO pode produzir pois a fila está cheia\n", threadId);
-        pthread_cond_wait(&condFull, &mutex_prod);
+        pthread_cond_wait(&condFull, &mutex);
     }
     
     filaClock[clockCont] = *clock; //insere no final da fila
     clockCont++;
     printf("Thread: %d, Clock produzido: (%d, %d, %d)\n", threadId, clock->p[0], clock->p[1], clock->p[2]);
     
-    pthread_mutex_unlock(&mutex_prod); //desbloqueia acesso a região critica
+    pthread_mutex_unlock(&mutex); //desbloqueia acesso a região critica
     pthread_cond_signal(&condEmpty); //envia sinal que a fila não está vazia
     
     free(clock);
 }
 
 void consumirClock(int threadId) {
-    pthread_mutex_lock(&mutex_cons); //bloqueia acesso a região critica
+    pthread_mutex_lock(&mutex); //bloqueia acesso a região critica
     
     while (clockCont == 0) { //enquanto a fila estiver vazia espera até que um clock seja produzido
         printf("Thread %d NAO pode consumir pois a fila esta vazia\n", threadId);
-        pthread_cond_wait(&condEmpty, &mutex_cons);
+        pthread_cond_wait(&condEmpty, &mutex);
     }
     
     Clock clock = filaClock[0];
@@ -71,7 +70,7 @@ void consumirClock(int threadId) {
     }
     clockCont--;
     
-    pthread_mutex_unlock(&mutex_cons); //desbloqueia acesso a região critica
+    pthread_mutex_unlock(&mutex); //desbloqueia acesso a região critica
     pthread_cond_signal(&condFull); //envia sinal qu a fila não está cheia
     
 }
@@ -107,15 +106,14 @@ void *threadConsumidora(void* arg) {
 }
 
 int main() {
-    pthread_mutex_init(&mutex_cons, NULL);
-    pthread_mutex_init(&mutex_prod, NULL);
+    pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&condEmpty, NULL);
     pthread_cond_init(&condFull, NULL);
     
     pthread_t thread[THREAD_NUM*2]; 
     
-    //cenarioTesteCheia();
-    cenarioTesteVazia();
+    cenarioTesteCheia();
+    //cenarioTesteVazia();
     
     
     long i;
@@ -136,8 +134,7 @@ int main() {
         }  
     }
 
-    pthread_mutex_destroy(&mutex_cons);
-    pthread_mutex_destroy(&mutex_prod);
+    pthread_mutex_destroy(&mutex);
     pthread_cond_destroy(&condEmpty);
     pthread_cond_destroy(&condFull);
     return 0;
