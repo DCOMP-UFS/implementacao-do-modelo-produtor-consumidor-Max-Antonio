@@ -42,6 +42,7 @@ void produzirClock(int threadId) {
     pthread_mutex_lock(&mutex_prod); //bloqueia acesso a região critica
     //regiao critica
     while (clockCont == SIZE) { //se tiver cheio espera até receber sinal que um clock foi consumido
+        printf("Thread %d NAO pode produzir pois a fila está cheia\n", threadId);
         pthread_cond_wait(&condFull, &mutex_prod);
     }
     
@@ -59,6 +60,7 @@ void consumirClock(int threadId) {
     pthread_mutex_lock(&mutex_cons); //bloqueia acesso a região critica
     
     while (clockCont == 0) { //enquanto a fila estiver vazia espera até que um clock seja produzido
+        printf("Thread %d NAO pode consumir poia fila esta vazia\n", threadId);
         pthread_cond_wait(&condEmpty, &mutex_cons);
     }
     
@@ -112,8 +114,8 @@ int main() {
     
     pthread_t thread[THREAD_NUM]; 
     
-    //cenarioTesteCheia();
-    cenarioTesteVazia();
+    cenarioTesteCheia();
+    //cenarioTesteVazia();
     
     
     long i;
