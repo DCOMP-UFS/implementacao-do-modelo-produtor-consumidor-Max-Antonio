@@ -112,10 +112,10 @@ int main() {
     pthread_cond_init(&condEmpty, NULL);
     pthread_cond_init(&condFull, NULL);
     
-    pthread_t thread[THREAD_NUM]; 
+    pthread_t thread[THREAD_NUM*2]; 
     
-    cenarioTesteCheia();
-    //cenarioTesteVazia();
+    //cenarioTesteCheia();
+    cenarioTesteVazia();
     
     
     long i;
@@ -125,7 +125,7 @@ int main() {
         }  
     }
     for (i = THREAD_NUM; i < THREAD_NUM*2; i++){  
-        if (pthread_create(&thread[i], NULL, &threadProdutora, NULL) != 0) { //cria threads produtoras
+        if (pthread_create(&thread[i], NULL, &threadProdutora, (void*) i) != 0) { //cria threads produtoras
             perror("Failed to create the thread");
         }  
     }
